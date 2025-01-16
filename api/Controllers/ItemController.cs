@@ -147,6 +147,24 @@ namespace api.Controllers
                     oldCategory.Name = input.Name;
                     oldCategory.UpdateDate = DateTime.Now;
 
+                    List<ItemClassification> deleteClassifications = new List<ItemClassification>();
+                    List<ItemInstance> deleteInstances = new List<ItemInstance>();
+
+                    var oldClassifications = await _context.ItemClassifications.Where(i => i.ItemCategoryId == input.Id).ToListAsync();
+                    foreach (var classification in oldClassifications)
+                    {
+                        if (!input.ItemClassifications.Where(x => x.Id != null).Select(x => x.Id).Contains(classification.ItemClassificationId))
+                        {
+                            deleteClassifications.Add(classification);
+
+                            var instances = await _context.ItemInstances.Where(i => i.ItemClassificationId == classification.ItemClassificationId).ToListAsync();
+                            foreach (var instance in instances)
+                            {
+                                deleteInstances.Add(instance);
+                            }
+                        }
+                    }
+
                     foreach (var classification in input.ItemClassifications)
                     {
                         if (classification.Id == null)
@@ -161,8 +179,6 @@ namespace api.Controllers
                             await _context.ItemClassifications.AddAsync(newDbClassification);
                             await _context.SaveChangesAsync();
 
-                            classification.Id = newDbClassification.ItemClassificationId;
-
                             foreach (var newinstance in classification.ItemInstances)
                             {
                                 var newDBInstance = new ItemInstance
@@ -172,9 +188,6 @@ namespace api.Controllers
                                     CreateDate = DateTime.Now
                                 };
                                 await _context.ItemInstances.AddAsync(newDBInstance);
-                                await _context.SaveChangesAsync();
-
-                                newinstance.Id = newDBInstance.ItemInstanceId;
                             }
                         }
                         else
@@ -194,67 +207,45 @@ namespace api.Controllers
                                         CreateDate = DateTime.Now
                                     };
                                     await _context.ItemInstances.AddAsync(newDbInstance);
-                                    await _context.SaveChangesAsync();
-
-                                    instance.Id = newDbInstance.ItemInstanceId;
                                 }
                                 else
                                 {
-                                    var oldInstance = await _context.ItemInstances.SingleAsync(oi => oi.ItemInstanceId == instance.Id);
-                                    oldInstance.AssetId = instance.AssetId;
-                                    oldInstance.UpdateDate = DateTime.Now;
+                                    var updateInstances = await _context.ItemInstances.SingleAsync(oi => oi.ItemInstanceId == instance.Id);
+                                    updateInstances.AssetId = instance.AssetId;
+                                    updateInstances.UpdateDate = DateTime.Now;
                                 }
                             }
                         }
+
+                        var oldInstance = await _context.ItemInstances.Where(oi => oi.ItemClassificationId == classification.Id).ToListAsync();
+                        foreach (var Instance in oldInstance)
+                        {
+                            if(!classification.ItemInstances.Where(x => x.Id != null).Select(x => x.Id).Contains(Instance.ItemInstanceId))
+                            {
+                                deleteInstances.Add(Instance);
+                            }
+                        }
+                    }
+
+                    foreach (var instance in deleteInstances)
+                    {
+                        var hasrequisition = await _context.RequisitionedItems.Where(ni => ni.ItemInstanceId == instance.ItemInstanceId).ToListAsync();
+
+                        foreach (var requisition in hasrequisition)
+                        {
+                            if (requisition.ReturnDate == null)
+                            {
+                                return new JsonResult(new MessageResponse { Message = "ItemInstance has not been returned and cannot be deleted.", StatusCode = HttpStatusCode.BadRequest });
+                            }
+                            _context.RequisitionedItems.Remove(requisition);
+                        }
+                        _context.ItemInstances.Remove(instance);
                     }
                     await _context.SaveChangesAsync();
-                    var oldClassifications = await _context.ItemClassifications.Where(i => i.ItemCategoryId == input.Id).ToListAsync();
-                    foreach (var classification in oldClassifications)
-                    {
-                        var oldInstance = await _context.ItemInstances.Where(i => i.ItemClassificationId == classification.ItemClassificationId).ToListAsync();
-                        classification.ItemInstances = oldInstance;
-                    }
 
-                    foreach (var dbClass in oldClassifications)
+                    foreach (var classification in deleteClassifications)
                     {
-                        var clientClass = input.ItemClassifications.SingleOrDefault(c => c.Id == dbClass.ItemClassificationId);
-                        if (clientClass != null)
-                        {
-                            var missing = dbClass.ItemInstances.Where(dbInstance => !clientClass.ItemInstances.Any(clientInstance => clientInstance.Id == dbInstance.ItemInstanceId)).ToList();
-                            foreach (var remove in missing)
-                            {
-                                var hasrequisition = await _context.RequisitionedItems.Where(ni => ni.ItemInstanceId == remove.ItemInstanceId).ToListAsync();
-                                foreach (var requisition in hasrequisition)
-                                {
-                                    if (requisition.ReturnDate == null)
-                                    {
-                                        return new JsonResult(new MessageResponse { Message = "ItemInstance has not been returned and cannot be deleted.", StatusCode = HttpStatusCode.BadRequest });
-                                    }
-                                    _context.RequisitionedItems.Remove(requisition);
-                                }
-                                _context.ItemInstances.Remove(remove);
-                            }
-                        }
-                    }
-
-                    var missingClassifications = oldClassifications.Where(dbClass => !input.ItemClassifications.Any(clientClass => clientClass.Id == dbClass.ItemClassificationId)).ToList();
-                    foreach (var remove in missingClassifications)
-                    {
-                        var Instance = await _context.ItemInstances.Where(i => i.ItemClassificationId == remove.ItemClassificationId).ToListAsync();
-                        foreach (var removeInstance in Instance)
-                        {
-                            var hasrequisition = await _context.RequisitionedItems.Where(ni => ni.ItemInstanceId == removeInstance.ItemInstanceId).ToListAsync();
-                            foreach (var requisition in hasrequisition)
-                            {
-                                if (requisition.ReturnDate == null)
-                                {
-                                    return new JsonResult(new MessageResponse { Message = "ItemInstance has not been returned and cannot be deleted.", StatusCode = HttpStatusCode.BadRequest });
-                                }
-                                _context.RequisitionedItems.Remove(requisition);
-                            }
-                            _context.ItemInstances.Remove(removeInstance);
-                        }
-                        _context.ItemClassifications.Remove(remove);
+                        _context.ItemClassifications.Remove(classification);
                     }
 
                     await _context.SaveChangesAsync();
@@ -329,7 +320,7 @@ namespace api.Controllers
             }
             else
             {
-                Items = _context.ItemCategories.Where(e => e.Name.Contains(input.Name));
+                Items = _context.ItemCategories.Where(e => e.Name.ToLower().Contains(input.Name.ToLower()));
             }
 
             int totalItems = await Items.CountAsync();

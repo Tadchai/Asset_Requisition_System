@@ -93,7 +93,7 @@ namespace api.Controllers
         [HttpPost]
         public async Task<IActionResult> Update([FromBody] UpdateEmployeeRequest input)
         {
-            var AnyName = await _context.Employees.AnyAsync(e => EF.Functions.Collate(e.Name, "utf8mb4_bin") == input.FullName);
+            var AnyName = await _context.Employees.AnyAsync(e => EF.Functions.Collate(e.Name, "utf8mb4_bin") == input.FullName && e.EmployeeId != input.Id);
             if (AnyName)
             {
                 return new JsonResult(new MessageResponse { Message = "Name is already in use.", StatusCode = HttpStatusCode.Conflict });
@@ -171,7 +171,7 @@ namespace api.Controllers
             }
             else
             {
-                employee = _context.Employees.Where(e => e.Name.Contains(input.Name));
+                employee = _context.Employees.Where(e => e.Name.ToLower().Contains(input.Name.ToLower()));
             }
 
             int totalItems = await employee.CountAsync();
