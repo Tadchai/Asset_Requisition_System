@@ -59,7 +59,7 @@ namespace api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateEmployeeRequest input)
         {
-            var hasName = await _context.Employees.Where(e => EF.Functions.Collate(e.Name, "utf8mb4_bin") == input.FullName).AnyAsync();
+            var hasName = await _context.Employees.AnyAsync(e => EF.Functions.Collate(e.Name, "utf8mb4_bin") == input.FullName);
             if (hasName)
             {
                 return new JsonResult(new MessageResponse { Message = "Name is already in use.", StatusCode = HttpStatusCode.Conflict });
