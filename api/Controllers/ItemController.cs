@@ -167,10 +167,9 @@ namespace api.Controllers
                                          };
 
                     var oldInstance = queryInstances
-                    .AsEnumerable()
-                    .GroupBy(i => i.ItemClassificationId, i => i)
-                    .ToDictionary(x => x.Key, x => x.Where(y => y.ItemInstanceId.HasValue).Select(y => y.ItemInstanceId.Value).ToHashSet());
-
+                                    .AsEnumerable()
+                                    .GroupBy(i => i.ItemClassificationId, i => i)
+                                    .ToDictionary(x => x.Key, x => x.Where(y => y.ItemInstanceId.HasValue).Select(y => y.ItemInstanceId.Value).ToHashSet());
 
                     var classificationsWithId = input.ItemClassifications.Where(x => x.Id != null).ToDictionary(x => x.Id.Value);
 
@@ -240,12 +239,13 @@ namespace api.Controllers
 
                             var instancesWithId = classification.ItemInstances
                                                 .Where(x => x.Id != null)
-                                                .ToDictionary(x => x.Id.Value);
+                                                .Select(x => x.Id)
+                                                .ToList();
                             var instances = oldInstance[classification.Id.Value];
 
                             foreach (var instanceId in instances)
                             {
-                                if (!instancesWithId.ContainsKey(instanceId))
+                                if (!instancesWithId.Contains(instanceId))
                                 {
                                     deleteInstances.Add(instanceId);
                                 }
@@ -254,18 +254,15 @@ namespace api.Controllers
                     }
                     foreach (var instance in deleteInstances)
                     {
-                        var hasrequisition = await _context.RequisitionedItems.Where(ni => ni.ItemInstanceId == instance).ToListAsync();
+                        var itemInstance = await _context.ItemInstances.SingleAsync(x => x.ItemInstanceId == instance);
+                        if (itemInstance.RequisitionId != null)
+                            return new JsonResult(new MessageResponse { Message = "ItemInstance has not been returned and cannot be deleted.", StatusCode = HttpStatusCode.BadRequest });
 
+                        var hasrequisition = await _context.RequisitionedItems.Where(ni => ni.ItemInstanceId == instance).ToListAsync();
                         foreach (var requisition in hasrequisition)
                         {
-                            if (requisition.ReturnDate == null)
-                            {
-                                return new JsonResult(new MessageResponse { Message = "ItemInstance has not been returned and cannot be deleted.", StatusCode = HttpStatusCode.BadRequest });
-                            }
                             _context.RequisitionedItems.Remove(requisition);
                         }
-
-                        var itemInstance = await _context.ItemInstances.SingleAsync(x => x.ItemInstanceId == instance);
                         _context.ItemInstances.Remove(itemInstance);
                     }
                     await _context.SaveChangesAsync();
