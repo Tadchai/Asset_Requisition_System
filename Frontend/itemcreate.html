@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
         .classification-container {
@@ -10,23 +11,43 @@
             padding: 10px;
             margin-bottom: 10px;
         }
+
         .classification-container h4 {
             margin: 0 0 10px;
         }
     </style>
 </head>
+
 <body>
     <form id="itemForm">
+        <button type="button" onclick="save()">Save</button>
         <h2>Item Category</h2>
         <label>Item Category Name:</label>
-        <input type="text" id="categoryName" required />
-      
+        <input type="text" class="inputCategory" required />
+
         <h3>Item Classifications</h3>
-        <div id="classifications"></div>
         <button type="button" onclick="addClassification()">Add Classification</button>
-      
-        <button type="submit">Save</button>
-    </form>     
+        <div id="classifications"></div>
+    </form>
+
+    <template id="tempClassification">
+        <div class="classification-container">
+            <label>Item Classification Name:</label>
+            <input type="text" class="inputClassification" />
+            <button type="button" class="deleteClassification">Delete Classification</button>
+            <button type="button" class="addInstance">Add Instance</button>
+            <div class="instances"></div>
+        </div>
+    </template>
+
+    <template id="tempInstance">
+        <div class="instance-container">
+            <label>Asset ID:</label>
+            <input type="text" class="inputInstance" />
+            <button type="button" class="deleteInstance">Delete</button>
+        </div>
+    </template>
 </body>
 <script src="assets/itemcreate.js"></script>
+
 </html>

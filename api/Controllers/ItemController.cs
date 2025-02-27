@@ -46,12 +46,54 @@ namespace api.Controllers
                     var instances = await _context.ItemInstances.Where(i => i.ItemClassificationId == classification.ItemClassificationId).ToListAsync();
                     foreach (var instance in instances)
                     {
+                        classificationResponse.ItemInstances.Add(new InstanceResponse
+                        {
+                            Id = instance.ItemInstanceId,
+                            AssetId = instance.AssetId,
+                        });
+                    }
+                    response.ItemClassifications.Add(classificationResponse);
+                }
+                return new JsonResult(response);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new MessageResponse { Message = $"An error occurred: {ex.Message}", StatusCode = HttpStatusCode.InternalServerError });
+            }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetByIdWithName([FromQuery] int id)
+        {
+            try
+            {
+                var itemCategory = await _context.ItemCategories.SingleAsync(ic => ic.ItemCategoryId == id);
+                var response = new GetByIdItemWithNameResponse
+                {
+                    Id = itemCategory.ItemCategoryId,
+                    Name = itemCategory.Name,
+                    ItemClassifications = new List<ClassificationWithNameResponse>()
+                };
+
+                var classifications = await _context.ItemClassifications.Where(c => c.ItemCategoryId == id).ToListAsync();
+                foreach (var classification in classifications)
+                {
+                    var classificationResponse = new ClassificationWithNameResponse
+                    {
+                        Id = classification.ItemClassificationId,
+                        Name = classification.Name,
+                        ItemInstances = new List<InstanceWithNameResponse>()
+                    };
+
+                    var instances = await _context.ItemInstances.Where(i => i.ItemClassificationId == classification.ItemClassificationId).ToListAsync();
+                    foreach (var instance in instances)
+                    {
                         var requisition = await (from e in _context.Employees
                                                  join r in _context.RequisitionedItems on e.EmployeeId equals r.EmployeeId
                                                  where r.RequisitionId == instance.RequisitionId
                                                  select new { EmployeeId = r.EmployeeId, EmployeeName = r.Employee.Name }).SingleOrDefaultAsync();
 
-                        classificationResponse.ItemInstances.Add(new InstanceResponse
+                        classificationResponse.ItemInstances.Add(new InstanceWithNameResponse
                         {
                             Id = instance.ItemInstanceId,
                             AssetId = instance.AssetId,

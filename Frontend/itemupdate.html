@@ -1,33 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Item Detail</title>
   <style>
-    table, th, td {
+    table,
+    th,
+    td {
       border: 1px solid black;
       border-collapse: collapse;
       padding: 8px;
     }
-    th, td {
+
+    th,
+    td {
       text-align: left;
     }
+
     .classification-box {
       border: 1px solid black;
       padding: 10px;
       margin-bottom: 20px;
     }
+
     .classification-title {
       font-weight: bold;
       margin-bottom: 10px;
     }
   </style>
 </head>
+
 <body>
-    <div id="itemDetail"></div>
-    <button id="addClassificationButton">Add Item Classification</button>
-    <button id="submitButton">Submit</button>
-  </body>
-  <script src="assets/itemupdate.js"></script>
+  <div id="display"></div>
+  <form id="itemFormUpdate">
+    <button type="button" onclick="save()">Save</button>
+    <h1>Update</h1>
+    <h3>Item Category</h3>
+    <label>Item Category Name:</label>
+    <input type="text" class="updateCategory" required />
+    <h3>Item Classifications</h3>
+    <button type="button" onclick="addClassification()">Add Classification</button>
+    <div id="updateclassifications"></div>
+  </form>
+
+  <template id="tempClassification">
+    <div class="classification-container">
+      <label class="classification-label">Item Classification Name:</label>
+      <input type="text" class="inputClassification" />
+      <button type="button" class="deleteClassification">Delete Classification</button>
+      <button type="button" class="addInstance">Add Instance</button>
+      <div class="instances"></div>
+    </div>
+  </template>
+
+  <template id="tempInstance">
+    <div class="instance-container">
+      <label class="instance-label">Asset ID:</label>
+      <input type="text" class="inputInstance" />
+      <button type="button" class="deleteInstance">Delete</button>
+    </div>
+  </template>
+</body>
+<script src="assets/itemupdate.js"></script>
 </html>

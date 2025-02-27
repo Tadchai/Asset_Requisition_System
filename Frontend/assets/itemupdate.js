@@ -1,194 +1,243 @@
-const urlParams = new URLSearchParams(window.location.search);
-const itemCategoryId = urlParams.get("id");
+let result = [];
 
-async function fetchItemDetail() {
-  try {
-    const response = await fetch(
-      `http://localhost:5143/Item/GetById?id=${itemCategoryId}`
-    );
-    const data = await response.json();
+function updateInstanceNumbers(classIndex, startIndex)
+{
+  const classDiv = document.querySelectorAll(".classification-container");
+  const instances = classDiv[classIndex].querySelectorAll(".instance-container");
 
-    if (!response.ok || !data) {
-      document.getElementById("itemDetail").innerHTML = `<p>Error: ${
-        data.message || "Failed to load item details."
-      }</p>`;
-      return;
-    }
-
-    renderItemDetail(data);
-  } catch (error) {
-    console.error("Error fetching item detail:", error);
-    document.getElementById(
-      "itemDetail"
-    ).innerHTML = `<p>An error occurred while fetching item details.</p>`;
+  for (let i = startIndex; i < instances.length; i++)
+  {
+    instances[i].dataset.index = i;
+    const labelInstance = instances[i].querySelector(".instance-label");
+    labelInstance.innerHTML = `${classIndex + 1}.${i + 1} - Asset ID:`;
   }
 }
 
-function renderItemDetail(data) {
-  let html = `<h2>Item Category</h2>`;
-  html += `<p>Name: <input type="text" id="categoryName" value="${data.name}"></p>`;
+function updateClassificationNumbers(startIndex)
+{
+  const classDivs = document.querySelectorAll(".classification-container");
 
-  html += `<h3>Item Classifications</h3>`;
-  html += `<div id="classificationsContainer">`;
-  data.itemClassifications.forEach((classification, index) => {
-    html += renderClassification(classification, index);
-  });
-  html += `</div>`;
+  for (let i = startIndex; i < classDivs.length; i++)
+  {
+    classDivs[i].dataset.index = i;
+    classDivs[i].querySelector(".classification-label").innerHTML = `${i + 1} - Item Classification:`;
 
-  document.getElementById("itemDetail").innerHTML = html;
-
-  document
-    .querySelectorAll(".add-instance-button")
-    .forEach((button) => button.addEventListener("click", addInstanceRow));
-  document
-    .querySelectorAll(".delete-classification-button")
-    .forEach((button) =>
-      button.addEventListener("click", deleteClassification)
-    );
-  document
-    .querySelectorAll(".delete-instance-button")
-    .forEach((button) => button.addEventListener("click", deleteInstanceRow));
+    updateInstanceNumbers(i, 0);
+  }
 }
 
-function renderClassification(classification, index) {
-  let html = `<div class="classification-box" data-index="${index}" data-id="${
-    classification.id || ""
-  }">
-        <p>
-          Name: <input type="text" class="classification-name" value="${
-            classification.name
-          }">
-          <button class="delete-classification-button" data-classification-index="${index}">Delete Classification</button>
-        </p>
-        <button class="add-instance-button" data-classification-index="${index}">Add Instance</button>
-        <h4>Item Instances</h4>
-        <div class="instances-container">`;
+window.addEventListener("DOMContentLoaded", async function ()
+{
+  const urlParams = new URLSearchParams(window.location.search);
+  const itemCategoryId = urlParams.get("id");
 
-  classification.itemInstances.forEach((instance, instanceIndex) => {
-    html += renderInstance(instance, instanceIndex);
+  const response = await fetch(`http://localhost:5143/Item/GetById?id=${itemCategoryId}`);
+  const data = await response.json();
+  result = data
+  render(data);
+
+  document.querySelector(".updateCategory").addEventListener("change", function ()
+  {
+    result.name = this.value
+  });
+  document.querySelectorAll(".inputClassification").forEach(input =>
+  {
+    input.addEventListener("change", function ()
+    {
+      const index = this.parentNode.dataset.index;
+      result.itemClassifications[index].name = this.value;
+    });
   });
 
-  html += `</div></div>`;
-  return html;
-}
+});
 
-function renderInstance(instance = { id: null, assetId: "" }, instanceIndex = -1) {
-  const assetId = instance.assetId || ""; 
-  return `
-    <div class="instance-row" data-instance-index="${instanceIndex}" data-id="${instance.id || ""}">
-      <input type="text" class="instance-asset-id" value="${assetId}">
-      <button class="delete-instance-button" data-instance-index="${instanceIndex}">Delete Instance</button>
-    </div>`;
-}
+function render(data)
+{
+  let x = 0;
+  document.querySelector(".updateCategory").value = data.name;
+  document.querySelector(".updateCategory").dataset.id = data.id;
 
+  const classificationDiv = document.getElementById("updateclassifications");
 
+  data.itemClassifications.forEach(classification =>
+  {
+    let y = 0;
+    const tempClassification = document.getElementById("tempClassification");
+    const tempClassClone = tempClassification.content.cloneNode(true);
+    const instanceDiv = tempClassClone.querySelector(".instances");
+    const classContainer = tempClassClone.querySelector(".classification-container");
+    classContainer.dataset.index = x;
 
-function addClassification() {
-  const container = document.getElementById("classificationsContainer");
-  const index = container.children.length;
+    const inputClassification = tempClassClone.querySelector(".inputClassification");
+    inputClassification.value = classification.name;
+    inputClassification.dataset.id = classification.id;
 
-  const newClassification = `
-      <div class="classification-box" data-index="${index}">
-        <p>
-          Name: <input type="text" class="classification-name" placeholder="New Classification Name">
-          <button class="delete-classification-button" data-classification-index="${index}">Delete Classification</button>
-        </p>
-        <button class="add-instance-button" data-classification-index="${index}">Add Instance</button>
-        <h4>Item Instances</h4>
-        <div class="instances-container"></div>
-      </div>`;
-  container.insertAdjacentHTML("beforeend", newClassification);
+    classification.itemInstances.forEach(instance =>
+    {
+      const tempInstance = document.getElementById("tempInstance");
+      const tempInClone = tempInstance.content.cloneNode(true);
+      const instanceContainer = tempInClone.querySelector(".instance-container");
+      instanceContainer.dataset.index = y;
 
-  container
-    .querySelector(
-      `.classification-box[data-index="${index}"] .add-instance-button`
-    )
-    .addEventListener("click", addInstanceRow);
+      const inputInstance = tempInClone.querySelector(".inputInstance");
+      inputInstance.value = instance.assetId;
+      inputInstance.dataset.id = instance.id;
 
-  container
-    .querySelector(
-      `.classification-box[data-index="${index}"] .delete-classification-button`
-    )
-    .addEventListener("click", deleteClassification);
-}
+      inputInstance.addEventListener("change", function ()
+      {
+        const classIndex = classContainer.dataset.index;
+        const insIndex = instanceContainer.dataset.index;
+        result.itemClassifications[classIndex].itemInstances[insIndex].assetId = this.value;
+      });
 
-function addInstanceRow(event) {
-  const classificationIndex = event.target.dataset.classificationIndex;
-  const container = document.querySelector(
-    `.classification-box[data-index="${classificationIndex}"] .instances-container`
-  );
+      tempInClone.querySelector(".deleteInstance").addEventListener("click", function ()
+      {
+        const classIndex = parseInt(classContainer.dataset.index);
+        const deletedIndex = parseInt(instanceContainer.dataset.index);
+        this.parentNode.remove();
 
-  const instanceIndex = container.children.length;
-  const newInstance = renderInstance({}, instanceIndex);
-  container.insertAdjacentHTML("beforeend", newInstance);
+        updateInstanceNumbers(classIndex, deletedIndex);
+      });
 
-  container
-    .querySelector(
-      `.instance-row[data-instance-index="${instanceIndex}"] .delete-instance-button`
-    )
-    .addEventListener("click", deleteInstanceRow);
-}
-
-function deleteClassification(event) {
-  const classificationIndex = event.target.dataset.classificationIndex;
-  const classificationBox = document.querySelector(
-    `.classification-box[data-index="${classificationIndex}"]`
-  );
-  classificationBox.remove();
-}
-
-function deleteInstanceRow(event) {
-  const instanceIndex = event.target.dataset.instanceIndex;
-  const instanceRow = document.querySelector(
-    `.instance-row[data-instance-index="${instanceIndex}"]`
-  );
-  instanceRow.remove();
-}
-
-async function submitItemDetail() {
-  const categoryName = document.getElementById("categoryName").value;
-  const classificationElements = document.querySelectorAll(".classification-box");
-
-  const itemClassifications = Array.from(classificationElements).map((el) => {
-    const classificationId = el.dataset.id || null; 
-    const name = el.querySelector(".classification-name").value;
-
-    const instances = Array.from(el.querySelectorAll(".instance-row")).map((row) => {
-      return {
-        id: row.dataset.id || null, 
-        assetId: row.querySelector(".instance-asset-id").value,
-      };
+      instanceDiv.appendChild(tempInClone);
+      y++;
     });
 
-    return { id: classificationId, name, itemInstances: instances };
+    tempClassClone.querySelector(".addInstance").addEventListener("click", function ()
+    {
+      const tempInstance = document.getElementById("tempInstance");
+      const tempInClone = tempInstance.content.cloneNode(true);
+      const instanceContainer = tempInClone.querySelector(".instance-container");
+      const y = instanceDiv.querySelectorAll(".instance-container").length;
+      instanceContainer.dataset.index = y;
+
+      const classIndex = parseInt(classContainer.dataset.index);
+      tempInClone.querySelector(".instance-label").innerHTML = `${classIndex + 1}.${y + 1} - Asset ID:`;
+      result.itemClassifications[classIndex].itemInstances.push({
+        id: null,
+        assetId: "",
+      });
+
+      const inputInstance = tempInClone.querySelector(".inputInstance");
+      inputInstance.addEventListener("change", function ()
+      {
+        result.itemClassifications[classIndex].itemInstances[y].assetId = this.value;
+      });
+
+      tempInClone.querySelector(".deleteInstance").addEventListener("click", function ()
+      {
+
+        const deletedIndex = parseInt(instanceContainer.dataset.index);
+        this.parentNode.remove();
+        result.itemClassifications[classIndex].itemInstances.splice(deletedIndex, 1);
+        updateInstanceNumbers(classIndex, deletedIndex);
+      });
+
+      instanceDiv.appendChild(tempInClone);
+    });
+
+    tempClassClone.querySelector(".deleteClassification").addEventListener("click", function ()
+    {
+      const deletedIndex = parseInt(classContainer.dataset.index);
+      this.parentNode.remove();
+      result.itemClassifications.splice(deletedIndex, 1);
+      updateClassificationNumbers(deletedIndex);
+    });
+
+    classificationDiv.appendChild(tempClassClone);
+    x++;
   });
 
-  const payload = {
-    id: itemCategoryId,
-    name: categoryName,
-    itemClassifications,
-  };
+  updateClassificationNumbers(0);
+}
 
-  try {
+function addClassification()
+{
+  const classificationDiv = document.getElementById("updateclassifications");
+  const tempClassification = document.getElementById("tempClassification");
+  const tempClassClone = tempClassification.content.cloneNode(true);
+
+  const classContainer = tempClassClone.querySelector(".classification-container");
+  const classIndex = document.querySelectorAll(".classification-container").length;
+  classContainer.dataset.index = classIndex;
+
+  classContainer.querySelector(".classification-label").innerHTML = `${classIndex + 1} - Item Classification:`;
+  result.itemClassifications.push({
+    id: null,
+    name: "",
+    itemInstances: []
+  });
+
+  const instanceDiv = classContainer.querySelector(".instances");
+
+  classContainer.querySelector(".addInstance").addEventListener("click", function ()
+  {
+    const tempInstance = document.getElementById("tempInstance");
+    const tempInClone = tempInstance.content.cloneNode(true);
+
+    const instanceContainer = tempInClone.querySelector(".instance-container");
+    const insIndex = instanceDiv.querySelectorAll(".instance-container").length;
+    instanceContainer.dataset.index = insIndex;
+
+    instanceContainer.querySelector(".instance-label").innerHTML = `${classIndex + 1}.${insIndex + 1} - Asset ID:`;
+    result.itemClassifications[classIndex].itemInstances.push({
+      id: null,
+      assetId: "",
+    });
+
+    const inputInstance = tempInClone.querySelector(".inputInstance");
+    inputInstance.addEventListener("change", function ()
+    {
+      result.itemClassifications[classIndex].itemInstances[insIndex].assetId = this.value;
+    });
+
+    instanceContainer.querySelector(".deleteInstance").addEventListener("click", function ()
+    {
+      const deletedIndex = parseInt(instanceContainer.dataset.index);
+      this.parentNode.remove();
+      result.itemClassifications[classIndex].itemInstances.splice(deletedIndex, 1);
+      updateInstanceNumbers(classIndex, deletedIndex);
+    });
+
+    instanceDiv.appendChild(instanceContainer);
+
+  });
+
+  classContainer.querySelector(".deleteClassification").addEventListener("click", function ()
+  {
+    const deletedIndex = parseInt(classContainer.dataset.index);
+    this.parentNode.remove();
+    result.itemClassifications.splice(deletedIndex, 1)
+    updateClassificationNumbers(deletedIndex);
+  });
+
+  classificationDiv.appendChild(classContainer);
+
+  document.querySelectorAll(".inputClassification").forEach(input =>
+  {
+    input.addEventListener("change", function ()
+    {
+      const index = this.parentNode.dataset.index;
+      result.itemClassifications[index].name = this.value;
+    });
+  });
+}
+
+async function save()
+{
+  try
+  {
     const response = await fetch("http://localhost:5143/Item/Update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(result),
     });
-    const result = await response.json();
-    alert(result.message || "Update completed successfully!");
-    window.location.href = `/Frontend/itemdetail.html?id=${itemCategoryId}`;
-  } catch (error) {
+    const responseData = await response.json();
+    alert(responseData.message || "Update completed successfully!");
+    window.location.href = `/Frontend/itemdetail.html?id=${result.id}`;
+  } catch (error)
+  {
     console.error("Error updating item detail:", error);
     alert("An error occurred while updating item details.");
   }
 }
-
-document
-  .getElementById("addClassificationButton")
-  .addEventListener("click", addClassification);
-document
-  .getElementById("submitButton")
-  .addEventListener("click", submitItemDetail);
-
-fetchItemDetail();

@@ -39,6 +39,24 @@ namespace api.ViewModels
     {
         public int Id { get; set; }
         public string AssetId { get; set; }
+    }
+    public class GetByIdItemWithNameResponse
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public List<ClassificationWithNameResponse>? ItemClassifications { get; set; }
+    }
+
+    public class ClassificationWithNameResponse
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public List<InstanceWithNameResponse>? ItemInstances { get; set; }
+    }
+    public class InstanceWithNameResponse
+    {
+        public int Id { get; set; }
+        public string AssetId { get; set; }
         public int? RequisitionEmployeeId { get; set; } = null;
         public string? RequisitionEmployeeName { get; set; } = null;
     }

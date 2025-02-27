@@ -7,7 +7,7 @@ document.getElementById('updateButton').addEventListener('click', () => {
 
 async function fetchItemDetail() {
   try {
-    const response = await fetch(`http://localhost:5143/Item/GetById?id=${itemCategoryId}`);
+    const response = await fetch(`http://localhost:5143/Item/GetByIdWithName?id=${itemCategoryId}`);
     const data = await response.json();
 
     if (!response.ok || !data) {
