@@ -17,7 +17,11 @@ public partial class ItemInstance
 
     public DateTime? UpdateDate { get; set; }
 
+    public int SoldStatus { get; set; }
+
     public virtual ItemClassification ItemClassification { get; set; } = null!;
+
+    public virtual ICollection<ReceiptDetail> ReceiptDetails { get; set; } = new List<ReceiptDetail>();
 
     public virtual RequisitionedItem? Requisition { get; set; }
 

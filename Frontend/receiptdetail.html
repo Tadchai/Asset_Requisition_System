@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Detail</title>
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th {
+            padding: 20px;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        #totalReceipt {
+            margin-left: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>รายละเอียดใบเสร็จรับเงิน</h1>
+    <label for="">เลขที่เอกสาร</label><br>
+    <input type="text" disabled value="RXXXX" class="receiptId"><br>
+    <label for="">วันที่</label><br>
+    <input type="date" disabled class="date"><br><br>
+
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>ประเภทสินค้า</th>
+                <th>ชื่อสินค้า</th>
+                <th>จำนวน</th>
+                <th>หน่วยนับ</th>
+                <th>ราคาต่อหน่วย</th>
+                <th>มูลค่ารวม</th>
+            </tr>
+        </thead>
+        <tbody id="TableBody">
+
+        </tbody>
+    </table>
+    <div id="totalReceipt">
+        <label for="">รวมเป็นเงิน</label>
+        <input type="number" value=0 disabled class="total"><br>
+        <label for="">ส่วนลดท้ายบิล</label>
+        <input type="number" value=0 class="discount" disabled><br>
+        <label for="">มูลค่าจ่ายชำระ</label>
+        <input type="number" value=0 disabled class="grandTotal"><br>
+    </div>
+
+    <template id="tempReceipt">
+        <tr class="Receipt-contain">
+            <td class="ReceiptId"></td>
+            <td class="instanceType"></td>
+            <td class="instance"></td>
+            <td class="quantity"></td>
+            <td class="unit">></td>
+            <td class="price"></td>
+            <td class="totalValue"></td>
+        </tr>
+    </template>
+</body>
+<script src="assets/reciptdetail.js"></script>
+
+</html>

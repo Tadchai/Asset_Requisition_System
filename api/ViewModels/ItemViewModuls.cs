@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace api.ViewModels
 {
+    public enum InstanceStatus
+    {
+        NotSold,
+        Sold,
+    }
     public class CreateItemRequest
     {
         public string Name { get; set; }
@@ -73,9 +78,9 @@ namespace api.ViewModels
         public int Page { get; set; }
         public int PageSize { get; set; } 
     }
-    public class SearchItemResponse
+    public class SearchItemResponse<T>
     {
-        public List<PaginationItemResponse> Data { get; set; }
+        public List<T> Data { get; set; }
         public int PageIndex { get; set; }
         public int PageSize { get; set; }
         public int RowCount { get; set; }
@@ -119,4 +124,21 @@ namespace api.ViewModels
     {
         public int Id { get; set; }
     }
+
+    public class GetCategoryResponse{
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
+    }
+
+    public class GetClassificationByCategoryResponse{
+        public int ClassificationId { get; set; }
+        public string ClassificationName { get; set; }
+    }
+    
+    public class GetInstanceByClassificationIdResponse{
+        public int instanceId { get; set; }
+        public string AssetId { get; set; }
+    }
+     
+    
 }

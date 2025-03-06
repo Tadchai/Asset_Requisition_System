@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt</title>
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <label for="searchText">Search Text</label>
+        <input type="text" id="searchText">
+        <button id="searchButton">Search</button><br>
+        <button id="addItem">Add Receipt</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ReceiptName</th>
+            </tr>
+        </thead>
+        <tbody id="itemTableBody">
+
+        </tbody>
+    </table>
+
+    <div>
+        <label for="pageNumber">Page Number</label>
+        <select id="pageNumber"></select>
+
+        <label for="pageSize">Page Size</label>
+        <select id="pageSize">
+            <option value="3">3</option>
+            <option value="7">7</option>
+            <option value="11">11</option>
+        </select>
+    </div>
+
+    <div>
+        <span id="totalRows">Total Rows: 0</span>
+    </div>
+
+    <script src="assets/receipt.js"></script>
+</body>
+
+</html>

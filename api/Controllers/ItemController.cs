@@ -21,6 +21,73 @@ namespace api.Controllers
         }
 
         [HttpGet]
+        public async Task<ActionResult> GetCategory()
+        {
+            try
+            {
+                var query = from c in _context.ItemCategories
+                            select new GetCategoryResponse
+                            {
+                                CategoryName = c.Name,
+                                CategoryId = c.ItemCategoryId
+                            };
+
+                var result = await query.ToListAsync();
+                return new JsonResult(result);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new MessageResponse { Message = $"An error occurred: {ex.Message}", StatusCode = HttpStatusCode.InternalServerError });
+            }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetClassificationByCategoryId([FromQuery] int categoryId)
+        {
+            try
+            {
+                var query = from cs in _context.ItemClassifications
+                            where cs.ItemCategoryId == categoryId
+                            select new GetClassificationByCategoryResponse
+                            {
+                                ClassificationId = cs.ItemClassificationId,
+                                ClassificationName = cs.Name,
+                            };
+
+                var result = await query.ToListAsync();
+                return new JsonResult(result);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new MessageResponse { Message = $"An error occurred: {ex.Message}", StatusCode = HttpStatusCode.InternalServerError });
+            }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetInstanceByClassificationId([FromQuery] int classificationId)
+        {
+            try
+            {
+                var query = from i in _context.ItemInstances
+                            where i.ItemClassificationId == classificationId &&
+                            i.RequisitionId == null &&
+                            i.SoldStatus == (int)InstanceStatus.NotSold
+                            select new GetInstanceByClassificationIdResponse
+                            {
+                                instanceId = i.ItemInstanceId,
+                                AssetId = i.AssetId,
+                            };
+
+                var result = await query.ToListAsync();
+                return new JsonResult(result);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new MessageResponse { Message = $"An error occurred: {ex.Message}", StatusCode = HttpStatusCode.InternalServerError });
+            }
+        }
+
+        [HttpGet]
         public async Task<ActionResult> GetById([FromQuery] int id)
         {
             try
@@ -399,7 +466,7 @@ namespace api.Controllers
                 Name = i.Name
             }).ToList();
 
-            var response = new SearchItemResponse
+            var response = new SearchItemResponse<PaginationItemResponse>
             {
                 Data = data,
                 PageIndex = input.Page,

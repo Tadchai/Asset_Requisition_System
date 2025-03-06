@@ -24,6 +24,10 @@ public partial class EquipmentBorrowingContext : DbContext
 
     public virtual DbSet<ItemInstance> ItemInstances { get; set; }
 
+    public virtual DbSet<Receipt> Receipts { get; set; }
+
+    public virtual DbSet<ReceiptDetail> ReceiptDetails { get; set; }
+
     public virtual DbSet<RequisitionedItem> RequisitionedItems { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -117,6 +121,7 @@ public partial class EquipmentBorrowingContext : DbContext
                 .HasColumnName("createDate");
             entity.Property(e => e.ItemClassificationId).HasColumnName("itemClassificationId");
             entity.Property(e => e.RequisitionId).HasColumnName("requisitionId");
+            entity.Property(e => e.SoldStatus).HasColumnName("soldStatus");
             entity.Property(e => e.UpdateDate)
                 .HasColumnType("datetime")
                 .HasColumnName("updateDate");
@@ -129,6 +134,64 @@ public partial class EquipmentBorrowingContext : DbContext
             entity.HasOne(d => d.Requisition).WithMany(p => p.ItemInstances)
                 .HasForeignKey(d => d.RequisitionId)
                 .HasConstraintName("FK_itemInstances_requisitionId");
+        });
+
+        modelBuilder.Entity<Receipt>(entity =>
+        {
+            entity.HasKey(e => e.ReceiptId).HasName("PRIMARY");
+
+            entity.ToTable("receipt");
+
+            entity.Property(e => e.ReceiptId).HasColumnName("receiptId");
+            entity.Property(e => e.Date).HasColumnName("date");
+            entity.Property(e => e.Discount)
+                .HasPrecision(10, 2)
+                .HasColumnName("discount");
+            entity.Property(e => e.ReceiptName)
+                .HasMaxLength(50)
+                .HasColumnName("receiptName");
+            entity.Property(e => e.TotalAmount)
+                .HasPrecision(10, 2)
+                .HasColumnName("totalAmount");
+            entity.Property(e => e.TotalValue)
+                .HasPrecision(10, 2)
+                .HasColumnName("totalValue");
+        });
+
+        modelBuilder.Entity<ReceiptDetail>(entity =>
+        {
+            entity.HasKey(e => e.ReceiptDetailId).HasName("PRIMARY");
+
+            entity.ToTable("receiptDetail");
+
+            entity.HasIndex(e => e.InstanceId, "FK_ReceiptDetail_InstanceId");
+
+            entity.HasIndex(e => e.ReceiptId, "FK_ReceiptDetail_receiptId");
+
+            entity.Property(e => e.ReceiptDetailId).HasColumnName("receiptDetailId");
+            entity.Property(e => e.NewInstance)
+                .HasMaxLength(50)
+                .HasColumnName("newInstance");
+            entity.Property(e => e.Price)
+                .HasPrecision(10, 2)
+                .HasColumnName("price");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.ReceiptId).HasColumnName("receiptId");
+            entity.Property(e => e.TotalValue)
+                .HasPrecision(10, 2)
+                .HasColumnName("totalValue");
+            entity.Property(e => e.Unit)
+                .HasMaxLength(50)
+                .HasColumnName("unit");
+
+            entity.HasOne(d => d.Instance).WithMany(p => p.ReceiptDetails)
+                .HasForeignKey(d => d.InstanceId)
+                .HasConstraintName("FK_ReceiptDetail_InstanceId");
+
+            entity.HasOne(d => d.Receipt).WithMany(p => p.ReceiptDetails)
+                .HasForeignKey(d => d.ReceiptId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ReceiptDetail_receiptId");
         });
 
         modelBuilder.Entity<RequisitionedItem>(entity =>

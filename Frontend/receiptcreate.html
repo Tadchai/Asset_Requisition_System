@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Receipt</title>
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th {
+            padding: 20px;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        #totalReceipt {
+            margin-left: 700px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            /* จัดให้อยู่ตรงกลางแนวตั้ง */
+            justify-content: center;
+            /* จัดให้อยู่ตรงกลางแนวนอน */
+            display: none;
+            /* ซ่อน modal ตอนแรก */
+        }
+
+        .modal {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+            width: 450px;
+            /* ปรับขนาดตามข้อมูล */
+            max-width: 90%;
+            /* ไม่ให้กว้างเกินไป */
+            max-height: 90vh;
+            /* ไม่ให้สูงเกินไป */
+            overflow: auto;
+            /* เพิ่ม scroll ถ้าข้อมูลยาวเกิน */
+            flex-direction: column;
+        }
+
+        .modal .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            /* ชิดขวา */
+            margin-top: 10px;
+        }
+
+        .select {
+            color: blue;
+        }
+
+        #instanceSelect {
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>ออกใบเสร็จรับเงิน</h1>
+    <label for="">เลขที่เอกสาร</label><br>
+    <input type="text" disabled value="RXXXX"><br>
+    <label for="">วันที่</label><br>
+    <input type="date" disabled class="date"><br><br>
+
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>ประเภทสินค้า</th>
+                <th>ชื่อสินค้า</th>
+                <th>จำนวน</th>
+                <th>หน่วยนับ</th>
+                <th>ราคาต่อหน่วย</th>
+                <th>มูลค่ารวม</th>
+                <th>ดำเนินการ</th>
+            </tr>
+        </thead>
+        <tbody id="TableBody">
+
+        </tbody>
+    </table>
+    <div id="totalReceipt">
+        <label for="">รวมเป็นเงิน</label>
+        <input type="number" value=0 disabled class="total"><br>
+        <label for="">ส่วนลดท้ายบิล</label>
+        <input type="number" value=0 class="discount"><br>
+        <label for="">มูลค่าจ่ายชำระ</label>
+        <input type="number" value=0 disabled class="grandTotal"><br>
+        <button type="button" class="save">บันทึก</button>
+    </div>
+
+    <!-- Modal -->
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal">
+            <h2>เลือก Instance</h2>
+
+            <label for="categoryId">หมวดหมู่:</label>
+            <select id="categoryId">
+                <option value="">-</option>
+            </select>
+
+            <label for="classificationId">การจำแนกประเภท:</label>
+            <select id="classificationId">
+                <option value="">-</option>
+            </select>
+
+            <div id="instanceSelect">
+                <label for="instanceId">Instance:</label>
+                <ul id="instanceId"></ul>
+            </div>
+
+            <div id="selectedInfo"></div>
+
+            <div class="modal-footer">
+                <button class="btn-close">ปิด</button>
+                <button class="btn-select">เลือก</button>
+            </div>
+        </div>
+    </div>
+
+
+    <template id="tempInfo">
+        <div id="info">
+            <h3>รายละเอียดที่เลือก</h3>
+            <label><strong>Category:</strong></label>
+            <div class="categoryName"></div><br>
+            <label><strong>Classification:</strong></label>
+            <div class="classificationName"></div><br>
+            <label><strong>Instance:</strong></label>
+            <div class="instanceName"></div>
+        </div>
+    </template>
+
+    <template id="tempReceipt">
+        <tr class="Receipt-contain">
+            <td class="ReceiptId"></td>
+            <td><select id="decisionSelect" class="decisionSelect">
+                    <option value=0>-- กรุณาเลือกทรัพย์สิน --</option>
+                    <option value=1>ทรัพย์สินใหม่</option>
+                    <option value=2>ทรัพย์สินที่มีอยู่</option>
+                </select></td>
+            <td class="instance"></td>
+            <td><input type="number" class="quantity" value=0></input></td>
+            <td><input type="text" class="unit" value=""></input></td>
+            <td><input type="number" class="price" value=0></input></td>
+            <td class="totalValue">0</td>
+            <td><button type="button" class="deleteReceipt" disabled>ลบ</button></td>
+        </tr>
+    </template>
+</body>
+<script src="assets/receiptcreate.js"></script>
+
+</html>

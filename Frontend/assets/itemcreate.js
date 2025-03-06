@@ -26,8 +26,6 @@ function addClassification()
   classificationDiv.appendChild(tempClassClone);
 }
 
-
-
 async function save()
 {
   let result = [];
