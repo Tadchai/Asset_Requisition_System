@@ -26,7 +26,7 @@ namespace api.ViewModels
 
     public class GetReceiptResponse
     {
-        public string ReceiptName { get; set;}
+        public string ReceiptName { get; set; }
         public DateOnly Date { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal Discount { get; set; }
@@ -56,6 +56,30 @@ namespace api.ViewModels
         public int ReceiptId { get; set; }
         public string ReceiptName { get; set; }
 
+    }
+
+    public class ReceiptSearch
+    {
+        public int ReceiptId { get; set; }
+        public string ReceiptName { get; set; }
+        public decimal TotalValue { get; set; }
+        public List<ReceiptDetailSearch> ReceiptDetails { get; set; } = new List<ReceiptDetailSearch>();
+    }
+
+    public class ReceiptDetailSearch
+    {
+        public string InstanceName { get; set; }
+        public int Quantity { get; set; }
+        public string Unit { get; set; }
+        public decimal Price { get; set; }
+        public decimal TotalValue { get; set; }
+    }
+
+    public class ReceiptQuery
+    {
+        public int ReceiptId { get; set; }
+        public string ReceiptName { get; set; }
+        public decimal TotalValue { get; set; }
     }
 
 }

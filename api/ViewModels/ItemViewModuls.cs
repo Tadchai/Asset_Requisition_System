@@ -76,7 +76,7 @@ namespace api.ViewModels
     {
         public string? Name { get; set; }
         public int Page { get; set; }
-        public int PageSize { get; set; } 
+        public int PageSize { get; set; }
     }
     public class SearchItemResponse<T>
     {
@@ -89,6 +89,7 @@ namespace api.ViewModels
     {
         public string AssetId { get; set; }
         public string ClassificationName { get; set; }
+        public string CategoryName { get; set; }
         public int ItemInstanceId { get; set; }
     }
 
@@ -125,20 +126,23 @@ namespace api.ViewModels
         public int Id { get; set; }
     }
 
-    public class GetCategoryResponse{
+    public class GetCategoryResponse
+    {
         public int CategoryId { get; set; }
         public string CategoryName { get; set; }
     }
 
-    public class GetClassificationByCategoryResponse{
+    public class GetClassificationByCategoryResponse
+    {
         public int ClassificationId { get; set; }
         public string ClassificationName { get; set; }
     }
-    
-    public class GetInstanceByClassificationIdResponse{
+
+    public class GetInstanceByClassificationIdResponse
+    {
         public int instanceId { get; set; }
         public string AssetId { get; set; }
     }
-     
-    
+
+
 }

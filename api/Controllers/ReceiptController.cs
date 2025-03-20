@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Intrinsics.Arm;
 using System.Threading.Tasks;
 using api.Models;
 using api.ViewModels;
@@ -182,32 +183,78 @@ namespace api.Controllers
             }
 
             int skip = input.Page * input.PageSize;
-            IQueryable<Receipt> Items;
+            IQueryable<ReceiptQuery> queryReceipt;
 
             if (string.IsNullOrWhiteSpace(input.Name))
             {
-                Items = _context.Receipts;
+                queryReceipt = from r in _context.Receipts
+                               select new ReceiptQuery
+                               {
+                                   ReceiptId = r.ReceiptId,
+                                   ReceiptName = r.ReceiptName,
+                                   TotalValue = r.TotalValue
+                               };
             }
             else
             {
-                Items = _context.Receipts.Where(e => e.ReceiptName.ToLower().Contains(input.Name.ToLower()));
+                queryReceipt = from r in _context.Receipts
+                               where r.ReceiptName.ToLower().Contains(input.Name.ToLower())
+                               select new ReceiptQuery
+                               {
+                                   ReceiptId = r.ReceiptId,
+                                   ReceiptName = r.ReceiptName,
+                                   TotalValue = r.TotalValue
+                               };
             }
 
-            int totalItems = await Items.CountAsync();
-            var paginatedItems = await Items.Skip(skip).Take(input.PageSize).ToListAsync();
+            int totalReceipts = await queryReceipt.CountAsync();
+            var paginatedReceipts = await queryReceipt.Skip(skip).Take(input.PageSize).ToListAsync();
+            var paginatedReceiptDic = paginatedReceipts.ToDictionary(x => x.ReceiptId, x => new List<ReceiptDetailSearch>());
 
-            var data = paginatedItems.Select(r => new PaginationReciptResponse
+            var queryReceiptDetail = from rd in _context.ReceiptDetails
+                                     join i in _context.ItemInstances on rd.InstanceId equals i.ItemInstanceId into iJoin
+                                     from i in iJoin.DefaultIfEmpty()
+                                     where paginatedReceipts.Select(x => x.ReceiptId).Contains(rd.ReceiptId)
+                                     select new
+                                     {
+
+                                         rd.ReceiptId,
+                                         InstanceName = rd.NewInstance ?? i.AssetId,
+                                         rd.Quantity,
+                                         rd.Price,
+                                         rd.TotalValue
+                                     };
+            foreach (var detail in queryReceiptDetail)
             {
-                ReceiptName = r.ReceiptName,
+                paginatedReceiptDic[detail.ReceiptId].Add(new ReceiptDetailSearch
+                {
+                    InstanceName = detail.InstanceName,
+                    Price = detail.Price,
+                    Quantity = detail.Quantity,
+                    TotalValue = detail.TotalValue
+                });
+            }
+
+            var data = paginatedReceipts.Select(r => new ReceiptSearch
+            {
                 ReceiptId = r.ReceiptId,
+                ReceiptName = r.ReceiptName,
+                TotalValue = r.TotalValue,
+                ReceiptDetails = paginatedReceiptDic[r.ReceiptId].Select(x => new ReceiptDetailSearch
+                {
+                    InstanceName = x.InstanceName,
+                    Quantity = x.Quantity,
+                    Price = x.Price,
+                    TotalValue = x.TotalValue
+                }).ToList()
             }).ToList();
 
-            var response = new SearchItemResponse<PaginationReciptResponse>
+            var response = new SearchItemResponse<ReceiptSearch>
             {
                 Data = data,
                 PageIndex = input.Page,
                 PageSize = input.PageSize,
-                RowCount = totalItems,
+                RowCount = totalReceipts,
             };
 
             return new JsonResult(response);

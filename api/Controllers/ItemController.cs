@@ -93,48 +93,6 @@ namespace api.Controllers
             try
             {
                 var itemCategory = await _context.ItemCategories.SingleAsync(ic => ic.ItemCategoryId == id);
-                var response = new GetByIdItemResponse
-                {
-                    Id = itemCategory.ItemCategoryId,
-                    Name = itemCategory.Name,
-                    ItemClassifications = new List<ClassificationResponse>()
-                };
-
-                var classifications = await _context.ItemClassifications.Where(c => c.ItemCategoryId == id).ToListAsync();
-                foreach (var classification in classifications)
-                {
-                    var classificationResponse = new ClassificationResponse
-                    {
-                        Id = classification.ItemClassificationId,
-                        Name = classification.Name,
-                        ItemInstances = new List<InstanceResponse>()
-                    };
-
-                    var instances = await _context.ItemInstances.Where(i => i.ItemClassificationId == classification.ItemClassificationId).ToListAsync();
-                    foreach (var instance in instances)
-                    {
-                        classificationResponse.ItemInstances.Add(new InstanceResponse
-                        {
-                            Id = instance.ItemInstanceId,
-                            AssetId = instance.AssetId,
-                        });
-                    }
-                    response.ItemClassifications.Add(classificationResponse);
-                }
-                return new JsonResult(response);
-            }
-            catch (Exception ex)
-            {
-                return new JsonResult(new MessageResponse { Message = $"An error occurred: {ex.Message}", StatusCode = HttpStatusCode.InternalServerError });
-            }
-        }
-
-        [HttpGet]
-        public async Task<ActionResult> GetByIdWithName([FromQuery] int id)
-        {
-            try
-            {
-                var itemCategory = await _context.ItemCategories.SingleAsync(ic => ic.ItemCategoryId == id);
                 var response = new GetByIdItemWithNameResponse
                 {
                     Id = itemCategory.ItemCategoryId,
@@ -482,13 +440,21 @@ namespace api.Controllers
         {
             var requisition = await (from ii in _context.ItemInstances
                                      join ic in _context.ItemClassifications on ii.ItemClassificationId equals ic.ItemClassificationId
+                                     join c in _context.ItemCategories on ic.ItemCategoryId equals c.ItemCategoryId
                                      where ii.RequisitionId == null
-                                     select new { AssetId = ii.AssetId, ClassificationName = ic.Name, ItemInstanceId = ii.ItemInstanceId }).ToListAsync();
+                                     select new
+                                     {
+                                         AssetId = ii.AssetId,
+                                         ClassificationName = ic.Name,
+                                         ItemInstanceId = ii.ItemInstanceId,
+                                         CategoryName = c.Name
+                                     }).ToListAsync();
 
             var data = requisition.Select(r => new FreeItemResponse
             {
                 AssetId = r.AssetId,
                 ClassificationName = r.ClassificationName,
+                CategoryName = r.CategoryName,
                 ItemInstanceId = r.ItemInstanceId,
             });
 

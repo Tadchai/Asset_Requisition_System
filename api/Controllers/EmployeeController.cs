@@ -80,7 +80,7 @@ namespace api.Controllers
 
                     await transaction.CommitAsync();
 
-                    return new JsonResult(new MessageResponse { Message = "Employee Created successfully.", StatusCode = HttpStatusCode.Created });
+                    return new JsonResult(new MessageResponse { Id = employee.EmployeeId, Message = "Employee Created successfully.", StatusCode = HttpStatusCode.Created });
                 }
                 catch (Exception ex)
                 {
@@ -180,7 +180,7 @@ namespace api.Controllers
             var data = paginatedItems.Select(i => new GetPaginatedEmployee
             {
                 EmployeeId = i.EmployeeId,
-                Name = i.Name
+                FullName = i.Name
             }).ToList();
 
             var response = new GetSearchEmployee
