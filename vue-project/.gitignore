@@ -1,0 +1,67 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+.DS_Store
+dist
+dist-ssr
+coverage
+*.local
+
+/cypress/videos/
+/cypress/screenshots/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*.local
+
+# Temp files
+*.tmp
+*.cache
+*.bak
+*.swp
+*.swo
+*.swn
+
+# IDE specific
+*.iml
+
+# OS specific
+Thumbs.db
+ehthumbs.db
+*.lnk
+
+# npm related
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Testing related
+/junit.xml
+/coverage/
+/test-results/
+
+# Linting and formatting
+.eslintcache
+.stylelintcache
+.prettierignore
+.prettiercache
+
